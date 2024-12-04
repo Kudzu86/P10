@@ -1,5 +1,9 @@
 from rest_framework import serializers
-from .models import User, Project, Comment, Issue, Application
+from datetime import datetime
+from django.contrib.auth import get_user_model
+
+
+User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -22,48 +26,12 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Vous devez avoir au moins 15 ans pour vous inscrire.")
         return value
 
-    # Pour hashage du mot de passe à la création d'un utilisateur
     def create(self, validated_data):
+        """
+        Crée un utilisateur en hachant son mot de passe.
+        """
         consent = validated_data.get('consent', False)
         if not consent:
             raise serializers.ValidationError("Le consentement RGPD est requis.")
         user = User.objects.create_user(**validated_data)
         return user
-
-
-class ProjectSerializer(serializers.ModelSerializer):
-    contributors = UserSerializer(many=True, read_only=False)  # Permet de définir les contributeurs.
-    author = serializers.ReadOnlyField(source='author.id')
-
-    class Meta:
-        model = Project
-        fields = ['id', 'title', 'description', 'contributors', 'author']
-        read_only_fields = ['author']
-
-    def create(self, validated_data):
-        contributors_data = validated_data.pop('contributors', [])
-        project = Project.objects.create(**validated_data)
-
-        for contributor_data in contributors_data:
-            contributor = User.objects.get(id=contributor_data['id'])
-            project.contributors.add(contributor)  # Associer les contributeurs au projet
-        return project
-
-
-
-class CommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Comment
-        fields = ['id', 'author', 'project', 'content', 'created_at']
-
-
-class IssueSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Issue
-        fields = ['id', 'title', 'description', 'status', 'priority', 'author', 'project', 'assignee', 'created_at']
-
-
-class ApplicationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Application
-        fields = '__all__'
