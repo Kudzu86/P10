@@ -1,10 +1,13 @@
 from rest_framework import serializers
-from users.serializers import UserSerializer
-from .models import Project
+from .models import Project, Contributor
 from users.models import User
 
 class ProjectSerializer(serializers.ModelSerializer):
-    contributors = UserSerializer(many=True, read_only=False)  # Permet de définir les contributeurs.
+    contributors = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=User.objects.all(),
+        required=False
+    )
     author = serializers.ReadOnlyField(source='author.id')
 
     class Meta:
@@ -15,8 +18,11 @@ class ProjectSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         contributors_data = validated_data.pop('contributors', [])
         project = Project.objects.create(**validated_data)
-
-        for contributor_data in contributors_data:
-            contributor = User.objects.get(id=contributor_data['id'])
-            project.contributors.add(contributor)  # Associer les contributeurs au projet
+        project.contributors.set(contributors_data)  # Associer les contributeurs directement
         return project
+
+    def update(self, instance, validated_data):
+        contributors_data = validated_data.pop('contributors', [])
+        instance = super().update(instance, validated_data)
+        instance.contributors.set(contributors_data)  # Mettre à jour les contributeurs
+        return instance

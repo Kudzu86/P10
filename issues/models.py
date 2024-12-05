@@ -26,6 +26,15 @@ class Issue(models.Model):
     assignee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_issues")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)  # Soft delete
 
     def __str__(self):
         return f"{self.title} - {self.status}"
+
+    def delete(self):
+        """Soft delete de l'issue."""
+        self.is_deleted = True
+        self.save()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)

@@ -3,7 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Issue
 from .serializers import IssueSerializer
 from .permissions import IsContributorOrAuthorForIssue
-
+from projects.models import Project
+from django.core.exceptions import PermissionDenied  # Import de l'exception
 
 class IssueViewSet(viewsets.ModelViewSet):
     """
@@ -14,12 +15,13 @@ class IssueViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Récupère uniquement les issues du projet où l'utilisateur est contributeur.
+        Récupère uniquement les issues actives du projet où l'utilisateur est contributeur.
         """
         project_id = self.kwargs['project_id']
         return Issue.objects.filter(
             project__id=project_id,
-            project__contributors__user=self.request.user
+            project__contributors__user=self.request.user,
+            is_deleted=False  # Filtrer les issues non supprimées
         ).distinct()
 
     def perform_create(self, serializer):
@@ -27,9 +29,13 @@ class IssueViewSet(viewsets.ModelViewSet):
         Crée une nouvelle issue pour le projet et assigne l'utilisateur comme auteur.
         """
         project_id = self.kwargs['project_id']
-        project = serializer.validated_data['project']
+
+        try:
+            project = Project.objects.get(id=project_id, is_deleted=False)  # Vérifie que le projet n'est pas supprimé
+        except Project.DoesNotExist:
+            raise PermissionDenied("Le projet spécifié n'existe pas ou a été supprimé.")
 
         if self.request.user not in project.contributors.all():
-            raise PermissionError("Vous devez être contributeur du projet pour créer une issue.")
+            raise PermissionDenied("Vous devez être contributeur du projet pour créer une issue.")
 
-        serializer.save(author=self.request.user, project_id=project_id)
+        serializer.save(author=self.request.user, project=project)  # Lier l'issue au projet

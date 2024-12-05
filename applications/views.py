@@ -8,7 +8,6 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     """
     Permet de gérer les applications liées aux projets.
     """
-    queryset = Application.objects.all()
     serializer_class = ApplicationSerializer
     permission_classes = [IsAuthenticated, IsContributor]  # Ajouter la permission IsContributor
 
@@ -17,4 +16,4 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         Pour ne récupérer que les applications des projets dont l'utilisateur est contributeur.
         """
         user = self.request.user
-        return Application.objects.filter(contributors=user)
+        return Application.objects.filter(contributors=user, is_deleted=False)

@@ -8,9 +8,18 @@ class Project(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="owned_projects")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)  # Soft delete
 
     def __str__(self):
         return self.title
+
+    def delete(self):
+        """Soft delete du projet."""
+        self.is_deleted = True
+        self.save()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
 
 class Contributor(models.Model):
@@ -23,9 +32,18 @@ class Contributor(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     role = models.CharField(max_length=15, choices=ROLE_CHOICES, default='CONTRIBUTOR')
     date_added = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)  # Soft delete for contributors
 
     class Meta:
         unique_together = ('user', 'project')
 
     def __str__(self):
         return f"{self.user.email} - {self.project.title} ({self.role})"
+
+    def delete(self):
+        """Soft delete du contributeur."""
+        self.is_deleted = True
+        self.save()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)

@@ -1,5 +1,22 @@
 from rest_framework.permissions import BasePermission
 from rest_framework import permissions
+from .models import Contributor
+
+
+class IsAuthorOrContributorReadOnly(permissions.BasePermission):
+    """
+    L'auteur du projet a tous les droits.
+    Les contributeurs ont un accès en lecture seule.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        # Autoriser l'accès en lecture pour tout contributeur
+        if request.method in permissions.SAFE_METHODS:  # GET, HEAD, OPTIONS
+            return True
+
+        # Seul l'auteur peut modifier ou supprimer le projet
+        return obj.author == request.user
+
 
 class IsContributorOrAuthor(BasePermission):
     """
@@ -19,7 +36,7 @@ class IsContributorOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:  # GET, HEAD, OPTIONS
             return True
-        return obj.author == request.user or obj.contributors.filter(id=request.user.id).exists()
+        return request.user == obj.author or request.user in obj.contributors.all()
 
 
 class IsAuthorOrReadOnly(permissions.BasePermission):

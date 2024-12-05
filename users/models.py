@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
 from django.core.validators import EmailValidator
@@ -11,24 +11,30 @@ class UserManager(BaseUserManager):
         """
         if not email:
             raise ValueError("L'e-mail donné doit être défini")
+
+        email = self.normalize_email(email)
         try:
             with transaction.atomic():
                 user = self.model(email=email, **extra_fields)
                 user.set_password(password)
                 user.save(using=self._db)
                 return user
-        except:
-            raise
+        except Exception as e:
+            raise ValueError(f"Une erreur est survenue lors de la création de l'utilisateur : {e}")
 
     def create_user(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
         return self._create_user(email, password, **extra_fields)
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        return self._create_user(email, password=password, **extra_fields)
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError("Le superuser doit avoir is_staff=True.")
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError("Le superuser doit avoir is_superuser=True.")
+        return self._create_user(email, password, **extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -41,18 +47,28 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     consent = models.BooleanField(default=False)  # Champ pour enregistrer le consentement RGPD
-    birthdate = models.DateField(null=True, blank=False)
+    birthdate = models.DateField(null=True, blank=True)  # Correction du champ blank=False, trop restrictif
     date_joined = models.DateTimeField(default=timezone.now)
     
     # Champs RGPD
     can_be_contacted = models.BooleanField(default=True)  # Consentement pour être contacté
     can_data_be_shared = models.BooleanField(default=False)  # Consentement pour partager les données
 
+    is_deleted = models.BooleanField(default=False)  # Soft delete
+
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
+    def delete(self):
+        """Soft delete de l'utilisateur."""
+        self.is_deleted = True
+        self.is_active = False  # Désactivation de l'utilisateur lors de la suppression
+        self.save()
+
     def save(self, *args, **kwargs):
-        super(User, self).save(*args, **kwargs)
-        return self
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.email} ({'Actif' if self.is_active else 'Supprimé'})"
