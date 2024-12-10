@@ -33,10 +33,19 @@ class IsContributorOrReadOnly(BasePermission):
     Les autres utilisateurs ont uniquement un accès en lecture.
     """
 
+    def has_permission(self, request, view):
+        # Autorise les utilisateurs authentifiés à créer un projet
+        if request.method == 'POST':
+            return request.user.is_authenticated
+        return True
+
     def has_object_permission(self, request, view, obj):
+        # Lecture seule autorisée pour tout le monde
         if request.method in permissions.SAFE_METHODS:  # GET, HEAD, OPTIONS
             return True
+        # Modification autorisée pour l'auteur ou les contributeurs
         return request.user == obj.author or request.user in obj.contributors.all()
+
 
 
 class IsAuthorOrReadOnly(permissions.BasePermission):

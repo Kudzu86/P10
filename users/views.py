@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.signals import user_logged_in
 from users.serializers import UserSerializer
 from rest_framework.views import APIView
+from datetime import date
 
 
 User = get_user_model()
@@ -27,6 +28,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
+        print(request.data)
         user_data = request.data
         consent = user_data.get('consent', False)
         birthdate = user_data.get('birthdate')

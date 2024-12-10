@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Project, Contributor
 from users.models import User
 
+
 class ProjectSerializer(serializers.ModelSerializer):
     contributors = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -12,7 +13,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ['id', 'title', 'description', 'contributors', 'author']
+        fields = ['id', 'title', 'description', 'created_at', 'updated_at', 'contributors', 'author']
         read_only_fields = ['author']
 
     def create(self, validated_data):
