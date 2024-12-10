@@ -20,36 +20,57 @@ class ProjectViewSet(viewsets.ModelViewSet):
         """
         return Project.objects.filter(contributor__user=self.request.user, is_deleted=False).distinct()
 
-def perform_create(self, serializer):
-    """
-    Crée un projet et ajoute l'auteur et les contributeurs (avec vérification).
-    """
-    print("Création du projet en cours...")
+    def perform_create(self, serializer):
+        """
+        Crée un projet et ajoute les contributeurs (avec vérification).
+        """
+        print("Création du projet en cours...") 
+        project = serializer.save(author=self.request.user)
 
-    # Créer le projet en affectant directement l'auteur
-    project = serializer.save(author=self.request.user)  # L'auteur est assigné directement ici
+        contributors_data = self.request.data.get('contributors', [])
+        contributors = []
 
-    # Vérifier si l'utilisateur est dans la liste des contributeurs, sinon l'ajouter
-    contributors_data = self.request.data.get('contributors', [])
-    
-    if self.request.user.id not in contributors_data:
-        contributors_data.append(self.request.user.id)  # S'assurer que l'auteur est un contributeur aussi
-    
-    contributors = []
-    for contributor_id in contributors_data:
-        try:
-            contributor = User.objects.get(id=contributor_id)
-            contributors.append(contributor)
-        except User.DoesNotExist:
-            continue  # Ignore si l'utilisateur n'existe pas
-    
-    # Associer les contributeurs au projet
-    project.contributors.set(contributors)
-    
-    # Sauvegarder le projet après avoir mis à jour les contributeurs
-    project.save()  # Sauvegarde après mise à jour des contributeurs
+        for contributor_id in contributors_data:
+            try:
+                contributor = User.objects.get(id=contributor_id)
+                contributors.append(contributor)
+            except User.DoesNotExist:
+                continue  # Ignore si l'utilisateur n'existe pas.
 
-    print(f"Projet créé avec succès, auteur : {project.author.id}, contributeurs : {[contributor.id for contributor in contributors]}")
+        project.contributors.set(contributors)
+        project.contributors.add(self.request.user)  # Ajouter l'auteur automatiquement.
+
+
+    #     def perform_create(self, serializer):
+    # """
+    # Crée un projet et ajoute l'auteur et les contributeurs (avec vérification).
+    # """
+    # print("Création du projet en cours...")
+
+    # # Créer le projet en affectant directement l'auteur
+    # project = serializer.save(author=self.request.user)  # L'auteur est assigné directement ici
+
+    # # Vérifier si l'utilisateur est dans la liste des contributeurs, sinon l'ajouter
+    # contributors_data = self.request.data.get('contributors', [])
+    
+    # if self.request.user.id not in contributors_data:
+    #     contributors_data.append(self.request.user.id)  # S'assurer que l'auteur est un contributeur aussi
+    
+    # contributors = []
+    # for contributor_id in contributors_data:
+    #     try:
+    #         contributor = User.objects.get(id=contributor_id)
+    #         contributors.append(contributor)
+    #     except User.DoesNotExist:
+    #         continue  # Ignore si l'utilisateur n'existe pas
+    
+    # # Associer les contributeurs au projet
+    # project.contributors.set(contributors)
+    
+    # # Sauvegarder le projet après avoir mis à jour les contributeurs
+    # project.save()  # Sauvegarde après mise à jour des contributeurs
+
+    # print(f"Projet créé avec succès, auteur : {project.author.id}, contributeurs : {[contributor.id for contributor in contributors]}")
 
 
     def perform_update(self, serializer):
