@@ -32,7 +32,8 @@ class Contributor(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     role = models.CharField(max_length=15, choices=ROLE_CHOICES, default='CONTRIBUTOR')
     date_added = models.DateTimeField(auto_now_add=True)
-    is_deleted = models.BooleanField(default=False)  # Soft delete for contributors
+    is_deleted = models.BooleanField(default=False)  # Soft delete 
+    
 
     class Meta:
         unique_together = ('user', 'project')

@@ -46,12 +46,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=30, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    consent = models.BooleanField(default=False)  # Champ pour enregistrer le consentement RGPD
+    can_be_contacted = models.BooleanField(default=False)
+    can_data_be_shared = models.BooleanField(default=False)
     birthdate = models.DateField(null=True, blank=True)  # Correction du champ blank=False, trop restrictif
     date_joined = models.DateTimeField(default=timezone.now)
     
     # Champs RGPD
-    can_be_contacted = models.BooleanField(default=True)  # Consentement pour être contacté
+    can_be_contacted = models.BooleanField(default=False)  # Consentement pour être contacté
     can_data_be_shared = models.BooleanField(default=False)  # Consentement pour partager les données
 
     is_deleted = models.BooleanField(default=False)  # Soft delete

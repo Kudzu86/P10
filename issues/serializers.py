@@ -9,4 +9,4 @@ class IssueSerializer(serializers.ModelSerializer):
             'id', 'title', 'description', 'status', 'priority',
             'author', 'assignee', 'project', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['author', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'project']

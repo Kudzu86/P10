@@ -1,10 +1,12 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
-from . import views
+from .views import IssueViewSet
 
 router = DefaultRouter()
-router.register(r'issues', views.IssueViewSet, basename='issue')
+router.register(r'projects/(?P<project_id>\d+)/issues', IssueViewSet, basename='issue')
 
 app_name = 'issues'
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('', include(router.urls)),
+]

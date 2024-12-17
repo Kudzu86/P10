@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from django.contrib.auth.signals import user_logged_in
 from users.serializers import UserSerializer
+from users.permissions import IsAccountOwner
 from rest_framework.views import APIView
 from datetime import date
 
@@ -17,20 +18,22 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     Permet de gérer la création et la récupération des utilisateurs.
     """
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_deleted=False).order_by('id')
     serializer_class = UserSerializer
 
     def get_permissions(self):
-        if self.action in ['create', 'list']:
-            return [AllowAny()]  # Autorisé à tout le monde pour l'inscription
-        elif self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
-            return [IsAuthenticated()]  # Seuls les utilisateurs authentifiés peuvent accéder/modifier
-        return super().get_permissions()
+        if self.request.user.is_superuser:
+            return []  # Les admins ont tous les droits, donc on ne met aucune restriction
+        elif self.action == 'create':
+            return [AllowAny()]  # Tout le monde peut créer un utilisateur
+        if self.action in ['list', 'retrieve']:
+            return [IsAuthenticated()]  # Les utilisateurs authentifiés peuvent accéder à la liste ou au profil
+        elif self.action in ['update', 'partial_update', 'destroy']:
+            return [IsAccountOwner()]  # Seulement le propriétaire ou l'admin peuvent modifier ou supprimer
+        return super().get_permissions()  # Retourne les permissions par défaut dans d'autres cas
 
     def create(self, request, *args, **kwargs):
-        print(request.data)
         user_data = request.data
-        consent = user_data.get('consent', False)
         birthdate = user_data.get('birthdate')
 
         # Vérification de la validité et de l'âge minimum (15 ans)
@@ -57,20 +60,12 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Vérification du consentement RGPD
-        if not consent:
-            return Response(
-                {'erreur': 'Le consentement RGPD est requis pour créer un compte.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
         serializer = self.get_serializer(data=user_data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
 
-        if serializer.is_valid(raise_exception=True):
-            self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
 
 # Vue de connexion (authentification) d'un utilisateur
 @api_view(['POST'])
@@ -86,9 +81,6 @@ def authenticate_user(request):
         # Récupérer l'utilisateur par son email
         user = User.objects.get(email=email)
         if user.check_password(password):
-            if not user.consent:
-                return Response({'erreur': 'Le consentement RGPD est requis pour accéder à ce service.'},
-                                status=status.HTTP_403_FORBIDDEN)
             refresh = RefreshToken.for_user(user)
             token = str(refresh.access_token)
             user_details = {
@@ -123,60 +115,14 @@ class UserDeleteView(APIView):
 
     def delete(self, request):
         user = request.user
+
+        # Demander une confirmation avant de supprimer l'utilisateur
+        confirm_delete = request.data.get('confirm_delete', False)
+        if not confirm_delete:
+            return Response({"message": "Vous devez confirmer la suppression de votre compte."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         user.delete()
         return Response({"message": "Votre compte et toutes les données associées ont été supprimés."},
                         status=status.HTTP_200_OK)
 
-
-class ContactUserView(APIView):
-    """
-    Permet à l'utilisateur de donner ou de modifier son consentement RGPD.
-    """
-    permission_classes = [IsAuthenticated]
-
-    def put(self, request):
-        consent = request.data.get('consent')
-
-        if consent is None:
-            return Response({'erreur': 'Le consentement est requis pour continuer.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if consent not in ['can_be_contacted', 'can_data_be_shared']:
-            return Response({"erreur": "Les consentements doivent être valides (can_be_contacted ou can_data_be_shared)."}, status=status.HTTP_400_BAD_REQUEST)
-
-        if consent == 'can_be_contacted':
-            request.user.can_be_contacted = request.data.get('value', False)
-        elif consent == 'can_data_be_shared':
-            request.user.can_data_be_shared = request.data.get('value', False)
-
-        request.user.save()
-
-        return Response({'message': 'Le consentement a été mis à jour avec succès.'}, status=status.HTTP_200_OK)
-
-
-class UserProfileViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]
-
-    def list(self, request):
-        """
-        Affiche les informations du profil de l'utilisateur connecté.
-        """
-        user = request.user
-        user_data = {
-            'username': user.username,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'email': user.email,
-            'consent': user.consent,
-        }
-        return Response(user_data)
-
-    def update(self, request):
-        """
-        Met à jour les informations du profil de l'utilisateur connecté.
-        """
-        user = request.user
-        user.first_name = request.data.get('first_name', user.first_name)
-        user.last_name = request.data.get('last_name', user.last_name)
-        user.email = request.data.get('email', user.email)
-        user.save()
-        return Response({'message': 'Le profil a été mis à jour avec succès.'})

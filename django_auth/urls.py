@@ -20,12 +20,11 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),  # URL pour l'admin Django
-    path('users/', include('users.urls', namespace='users')),  # Inclure les URLs de l'application users
-    path('projects/', include('projects.urls', namespace='projects')),  # Inclure les URLs de l'application projects
-    path('applications/', include('applications.urls', namespace='applications')),  # Inclure les URLs de l'application applications
-    path('comments/', include('comments.urls')),
-    path('issues/', include('issues.urls')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('admin/', admin.site.urls),  # Django admin
+    path('users/', include(('users.urls', 'users'), namespace='users')),  # Users app
+    path('projects/', include(('projects.urls', 'projects'), namespace='projects')),  # Projects app
+    path('comments/', include(('comments.urls', 'comments'), namespace='comments')),  # Comments app
+    path('issues/', include(('issues.urls', 'issues'), namespace='issues')),  # Issues app
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # JWT Token
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # JWT Refresh
 ]

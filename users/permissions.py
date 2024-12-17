@@ -6,4 +6,5 @@ class IsAccountOwner(BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
-        return obj == request.user
+        # Autoriser si l'utilisateur est admin ou le propriétaire du compte
+        return request.user.is_staff or obj == request.user

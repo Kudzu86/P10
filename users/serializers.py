@@ -11,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'date_joined', 'birthdate', 'password', 'consent')
+        fields = ('id', 'email', 'first_name', 'last_name', 'date_joined', 'birthdate', 'password', 'can_be_contacted', 'can_data_be_shared')
         extra_kwargs = {
             'password': {'write_only': True}  # Le mot de passe est en écriture seule.
         }
@@ -31,7 +31,6 @@ class UserSerializer(serializers.ModelSerializer):
         Crée un utilisateur en hachant son mot de passe.
         """
         consent = validated_data.get('consent', False)
-        if not consent:
-            raise serializers.ValidationError("Le consentement RGPD est requis.")
+
         user = User.objects.create_user(**validated_data)
         return user

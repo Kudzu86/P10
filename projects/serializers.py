@@ -23,7 +23,8 @@ class ProjectSerializer(serializers.ModelSerializer):
         return project
 
     def update(self, instance, validated_data):
-        contributors_data = validated_data.pop('contributors', [])
+        contributors_data = validated_data.pop('contributors', None)
         instance = super().update(instance, validated_data)
-        instance.contributors.set(contributors_data)  # Mettre à jour les contributeurs
+        if contributors_data is not None:
+            instance.contributors.set(contributors_data)  # Mettre à jour les contributeurs
         return instance
