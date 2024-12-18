@@ -37,14 +37,13 @@ cd P10
 
 ```bash
 pipenv install
-pipenv shell
 ```
 
 
 ### 3. Appliquez les migrations
 
 ```bash
-python manage.py migrate
+pipenv run python manage.py migrate
 ```
 
 ### 4. Créez un superutilisateur (admin)
@@ -52,7 +51,7 @@ python manage.py migrate
 Pour créer un utilisateur admin (superutilisateur) afin de pouvoir accéder à l'interface d'administration Django, utilisez la commande suivante :
 
 ```bash
-python manage.py createsuperuser
+pipenv run python manage.py createsuperuser
 ```
 
 Saisissez les informations demandées.
@@ -64,7 +63,7 @@ Identifiants admin de test :
 ### 6. Lancez le serveur
 
 ```bash
-python manage.py runserver
+pipenv run python manage.py runserver
 ```
 
 L'API sera disponible à l'adresse http://127.0.0.1:8000/.
