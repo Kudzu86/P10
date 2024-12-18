@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from issues.models import Issue
+import uuid
 
 User = get_user_model()
 
@@ -17,6 +18,7 @@ class Comment(models.Model):
     content = models.TextField(validators=[validate_comment_length])
     created_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)  # Soft delete
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def __str__(self):
         return f"Comment by {self.author} on {self.issue.title}"

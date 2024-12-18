@@ -13,8 +13,8 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['id', 'content', 'created_at', 'author', 'issue', 'project']
-        read_only_fields = ['author', 'issue', 'project']
+        fields = ['id', 'uuid', 'content', 'created_at', 'author', 'issue', 'project']
+        read_only_fields = ['id', 'author', 'issue', 'project', 'uuid']
 
     def get_author(self, obj):
         # Retourne l'auteur sous forme de nom d'utilisateur (ou d'autres infos si nécessaire)

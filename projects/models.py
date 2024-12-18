@@ -2,6 +2,13 @@ from django.db import models
 from users.models import User  # Importer le modèle User
 
 class Project(models.Model):
+    TYPE_CHOICES = [
+        ('backend', 'Back-end'),
+        ('frontend', 'Front-end'),
+        ('ios', 'iOS'),
+        ('android', 'Android'),
+    ]
+    
     title = models.CharField(max_length=255)
     description = models.TextField()
     contributors = models.ManyToManyField(User, related_name="projects")
@@ -9,6 +16,7 @@ class Project(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)  # Soft delete
+    type = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self):
         return self.title

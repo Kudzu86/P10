@@ -13,8 +13,16 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ['id', 'title', 'description', 'created_at', 'updated_at', 'contributors', 'author']
+        fields = ['id', 'title', 'description', 'type', 'created_at', 'updated_at', 'contributors', 'author']
         read_only_fields = ['author']
+
+    def validate_type(self, value):
+        valid_choices = [choice[0] for choice in Project.TYPE_CHOICES]
+        if value not in valid_choices:
+            raise serializers.ValidationError(
+                f"Le type doit être l'un des suivants : {', '.join(valid_choices)}."
+            )
+        return value
 
     def create(self, validated_data):
         contributors_data = validated_data.pop('contributors', [])
@@ -27,4 +35,6 @@ class ProjectSerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
         if contributors_data is not None:
             instance.contributors.set(contributors_data)  # Mettre à jour les contributeurs
+        if instance.author: 
+            instance.contributors.add(instance.author)
         return instance

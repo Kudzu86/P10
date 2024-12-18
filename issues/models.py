@@ -16,11 +16,18 @@ class Issue(models.Model):
         ('medium', 'Medium'),
         ('high', 'High')
     ]
+
+    BALISE_CHOICES = [
+        ('bug', 'Bug'),
+        ('feature', 'Feature'),
+        ('task', 'Task')
+    ]
     
     title = models.CharField(max_length=255)
     description = models.TextField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
-    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='medium')
+    status = models.CharField(max_length=20, default='open')
+    priority = models.CharField(max_length=10, default='medium')
+    balise = models.CharField(max_length=10, null=True, blank=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='issues')
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_issues')
     assignee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_issues")
