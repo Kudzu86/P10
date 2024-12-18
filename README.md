@@ -20,7 +20,7 @@ Elle permet aux équipes de collaborer efficacement en suivant et en gérant des
 Avant de commencer, assurez-vous d'avoir les éléments suivants installés sur votre machine :
 
 - Python 3.8 ou plus
-- Pip (gestionnaire de paquets Python)
+- Pipenv (gestionnaire de paquets de d'environnements virtuels Python)
 - Django 3.2 ou plus
 - Django REST Framework
 
@@ -33,26 +33,21 @@ git clone https://github.com/Kudzu86/P10.git
 cd P10
 ```
 
-### 2. Créez un environnement virtuel
+### 2. Installez les dépendances et créez l'environnement virtuel
 
 ```bash
-python -m venv venv
-source venv/bin/activate  # Sur Windows, utilisez `venv\Scripts\activate`
+pipenv install
+pipenv shell
 ```
 
-### 3. Installez les dépendances
 
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Appliquez les migrations
+### 3. Appliquez les migrations
 
 ```bash
 python manage.py migrate
 ```
 
-### 5. Créez un superutilisateur (admin)
+### 4. Créez un superutilisateur (admin)
 
 Pour créer un utilisateur admin (superutilisateur) afin de pouvoir accéder à l'interface d'administration Django, utilisez la commande suivante :
 
