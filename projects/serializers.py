@@ -6,7 +6,7 @@ from users.models import User
 class ProjectSerializer(serializers.ModelSerializer):
     contributors = serializers.PrimaryKeyRelatedField(
         many=True,
-        queryset=User.objects.all(),
+        queryset=User.objects.filter(is_active=True, is_deleted=False),
         required=False
     )
     author = serializers.ReadOnlyField(source='author.id')
@@ -16,11 +16,20 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'description', 'type', 'created_at', 'updated_at', 'contributors', 'author']
         read_only_fields = ['author']
 
+    def validate_contributors(self, value):
+        """Valide que tous les contributeurs sont des utilisateurs actifs."""
+        for contributor in value:
+            if not contributor.is_active or contributor.is_deleted:
+                raise serializers.ValidationError(
+                    f"L'utilisateur {contributor.email} n'est pas un utilisateur actif."
+                )
+        return value
+        
     def validate_type(self, value):
         valid_choices = [choice[0] for choice in Project.TYPE_CHOICES]
         if value not in valid_choices:
             raise serializers.ValidationError(
-                f"Le type doit être l'un des suivants : {', '.join(valid_choices)}."
+                f"Le type doit être parmis les choix suivants : {', '.join(valid_choices)}."
             )
         return value
 

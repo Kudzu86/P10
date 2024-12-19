@@ -12,8 +12,7 @@ class CustomUserAdmin(UserAdmin):
         for obj in queryset:
             obj.delete()
 
-    list_display = ['email', 'is_active'] #email remplace username (par default)
-    ordering = ['id'] # Trier par email
+    list_display = ['email', 'is_active']  # email remplace username (par défaut)
+    ordering = ['id']
 
-    
 admin.site.register(User, CustomUserAdmin)

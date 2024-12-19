@@ -32,6 +32,24 @@ class UserViewSet(viewsets.ModelViewSet):
             return [IsAccountOwner()]  # Seulement le propriétaire ou l'admin peuvent modifier ou supprimer
         return super().get_permissions()  # Retourne les permissions par défaut dans d'autres cas
 
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        
+        # Si l'email est modifié, vérifier qu'il n'est pas déjà utilisé
+        if 'email' in request.data and request.data['email'] != instance.email:
+            if User.objects.filter(email=request.data['email']).exists():
+                return Response(
+                    {'error': 'Cet email est déjà utilisé.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
+
     def create(self, request, *args, **kwargs):
         user_data = request.data
         birthdate = user_data.get('birthdate')

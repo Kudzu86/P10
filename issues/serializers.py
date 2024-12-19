@@ -15,7 +15,7 @@ class IssueSerializer(serializers.ModelSerializer):
         valid_choices = [choice[0] for choice in Issue.STATUS_CHOICES]
         if value not in valid_choices:
             raise serializers.ValidationError(
-                f"Le type doit être l'un des suivants : {', '.join(valid_choices)}."
+                f"Le status doit être parmis les choix suivants : {', '.join(valid_choices)}."
             )
         return value
 
@@ -23,7 +23,7 @@ class IssueSerializer(serializers.ModelSerializer):
         valid_choices = [choice[0] for choice in Issue.PRIORITY_CHOICES]
         if value not in valid_choices:
             raise serializers.ValidationError(
-                f"Le type doit être l'un des suivants : {', '.join(valid_choices)}."
+                f"La 'priority' doit être parmis les choix suivants : {', '.join(valid_choices)}."
             )
         return value
 
@@ -31,7 +31,7 @@ class IssueSerializer(serializers.ModelSerializer):
         valid_choices = [choice[0] for choice in Issue.BALISE_CHOICES]
         if value not in valid_choices:
             raise serializers.ValidationError(
-                f"Le type doit être l'un des suivants : {', '.join(valid_choices)}."
+                f"La balise doit être parmis les choix suivants : {', '.join(valid_choices)}."
             )
         return value
 
