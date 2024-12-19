@@ -39,14 +39,19 @@ cd P10
 pipenv install
 ```
 
+### 3. Ouvrez l'environnement virtuel
 
-### 3. Appliquez les migrations
+```bash
+.\env\Scripts\activate
+```
+
+### 4. Appliquez les migrations
 
 ```bash
 pipenv run python manage.py migrate
 ```
 
-### 4. Créez un superutilisateur (admin)
+### 5. Créez un superutilisateur (admin)
 
 Pour créer un utilisateur admin (superutilisateur) afin de pouvoir accéder à l'interface d'administration Django, utilisez la commande suivante :
 
