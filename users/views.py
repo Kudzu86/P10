@@ -26,7 +26,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return []  # Les admins ont tous les droits, donc on ne met aucune restriction
         elif self.action == 'create':
             return [AllowAny()]  # Tout le monde peut créer un utilisateur
-        if self.action in ['list', 'retrieve']:
+        elif self.action in ['list', 'retrieve']:
             return [IsAuthenticated()]  # Les utilisateurs authentifiés peuvent accéder à la liste ou au profil
         elif self.action in ['update', 'partial_update', 'destroy']:
             return [IsAccountOwner()]  # Seulement le propriétaire ou l'admin peuvent modifier ou supprimer
