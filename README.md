@@ -137,7 +137,8 @@ Exemple de requête :
   "email": "newuser@example.com",
   "password": "securepassword",
   "first_name": "John",
-  "last_name": "Doe"
+  "last_name": "Doe",
+  "birthdate": "2000-01-08"
 }
 ```
 
